@@ -101,7 +101,8 @@ if submit:
     except Exception as e:
 
         st.error(f"Hubo un error al guardar: {e}")
-     # --- DASHBOARD PRIVADO TOTAL ---
+
+# --- DASHBOARD PRIVADO TOTAL ---
 st.divider()
 with st.expander("🔐 Panel de Control Izzi (Solo Staff)"):
     password = st.text_input("Contraseña de Administrador", type="password")
