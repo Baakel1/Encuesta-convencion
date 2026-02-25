@@ -99,4 +99,37 @@ if submit:
         st.success("¡Información guardada con éxito! Gracias por tu tiempo.")
         
     except Exception as e:
+
         st.error(f"Hubo un error al guardar: {e}")
+        # --- DASHBOARD PRIVADO (SOLO PARA TI) ---
+st.divider()
+with st.expander("🔐 Acceso Administrativo"):
+    password = st.text_input("Introduce la clave para ver resultados", type="password")
+    
+    # Elige una clave sencilla pero segura
+    if password == "Izzi2026": 
+        st.subheader("📊 Resultados en Tiempo Real")
+        
+        # Volver a leer los datos actualizados
+        df_dashboard = conn.read(ttl=0)
+        df_dashboard = df_dashboard.dropna(how="all")
+
+        if not df_dashboard.empty:
+            # Métrica rápida
+            total_respuestas = len(df_dashboard)
+            st.metric("Total de encuestas", total_respuestas)
+
+            # Gráfica 1: Participación por Región
+            st.write("**Participación por Región**")
+            region_counts = df_dashboard["Región"].value_counts()
+            st.bar_chart(region_counts)
+
+            # Gráfica 2: Nivel de Motivación promedio
+            promedio_motivacion = df_dashboard["Motivacion"].mean()
+            st.write(f"**Nivel de Energía Promedio:** {promedio_motivacion:.2f} / 10")
+            
+            # Tabla de comentarios (Momentos WOW)
+            st.write("**Últimos comentarios 'WOW':**")
+            st.write(df_dashboard["Momento_WOW"].tail(5))
+        else:
+            st.info("Aún no hay datos para mostrar.")
