@@ -101,35 +101,58 @@ if submit:
     except Exception as e:
 
         st.error(f"Hubo un error al guardar: {e}")
-        # --- DASHBOARD PRIVADO (SOLO PARA TI) ---
+     # --- DASHBOARD PRIVADO TOTAL ---
 st.divider()
-with st.expander("🔐 Acceso Administrativo"):
-    password = st.text_input("Introduce la clave para ver resultados", type="password")
+with st.expander("🔐 Panel de Control Izzi (Solo Staff)"):
+    password = st.text_input("Contraseña de Administrador", type="password")
     
-    # Elige una clave sencilla pero segura
     if password == "Izzi2026": 
-        st.subheader("📊 Resultados en Tiempo Real")
+        st.success("Acceso concedido. Cargando insights...")
         
-        # Volver a leer los datos actualizados
-        df_dashboard = conn.read(ttl=0)
-        df_dashboard = df_dashboard.dropna(how="all")
+        # Leer datos frescos
+        df_dash = conn.read(ttl=0).dropna(how="all")
 
-        if not df_dashboard.empty:
-            # Métrica rápida
-            total_respuestas = len(df_dashboard)
-            st.metric("Total de encuestas", total_respuestas)
+        if not df_dash.empty:
+            # 1. MÉTRICAS CLAVE
+            col_m1, col_m2 = st.columns(2)
+            with col_m1:
+                st.metric("Total Respuestas", len(df_dash))
+            with col_m2:
+                prom_mot = df_dash["Motivacion"].mean()
+                st.metric("Energía Promedio", f"{prom_mot:.1f}/10")
 
-            # Gráfica 1: Participación por Región
-            st.write("**Participación por Región**")
-            region_counts = df_dashboard["Región"].value_counts()
-            st.bar_chart(region_counts)
+            st.divider()
 
-            # Gráfica 2: Nivel de Motivación promedio
-            promedio_motivacion = df_dashboard["Motivacion"].mean()
-            st.write(f"**Nivel de Energía Promedio:** {promedio_motivacion:.2f} / 10")
-            
-            # Tabla de comentarios (Momentos WOW)
-            st.write("**Últimos comentarios 'WOW':**")
-            st.write(df_dashboard["Momento_WOW"].tail(5))
+            # 2. GRÁFICAS DE DATOS GENERALES
+            st.write("### 🌍 Demografía y Canales")
+            st.bar_chart(df_dash["Región"].value_counts())
+            st.bar_chart(df_dash["Canal"].value_counts())
+
+            # 3. EVALUACIÓN DEL CONTENIDO (Slider 1-5)
+            st.write("### 📊 Evaluación (Escala 1-5)")
+            # Promediamos las 3 métricas de satisfacción
+            metrics_df = pd.DataFrame({
+                'Métrica': ['Claridad', 'Ponentes', 'Relevancia'],
+                'Promedio': [
+                    df_dash["Claridad_Objetivos"].mean(),
+                    df_dash["Calidad_Ponentes"].mean(),
+                    df_dash["Relevancia"].mean()
+                ]
+            })
+            st.bar_chart(metrics_df.set_index('Métrica'))
+
+            # 4. IMPACTO COMERCIAL (Radio Button)
+            st.write("### 🚀 Sentimiento de Preparación")
+            impacto_counts = df_dash["Impacto_Ventas"].value_counts()
+            st.bar_chart(impacto_counts)
+
+            # 5. FEEDBACK CUALITATIVO
+            st.write("### 💡 Feedback Abierto")
+            tab1, tab2 = st.tabs(["WOW Moments", "Sugerencias"])
+            with tab1:
+                st.write(df_dash["Momento_WOW"].dropna().tail(10))
+            with tab2:
+                st.write(df_dash["Mejoras"].dropna().tail(10))
+                
         else:
-            st.info("Aún no hay datos para mostrar.")
+            st.info("Esperando las primeras respuestas de la convención...")
