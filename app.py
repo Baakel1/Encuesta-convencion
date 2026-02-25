@@ -102,58 +102,54 @@ if submit:
 
         st.error(f"Hubo un error al guardar: {e}")
 
-# --- DASHBOARD PRIVADO TOTAL ---
+# --- DASHBOARD PRIVADO MOONLIGHT ---
 st.divider()
-with st.expander("🔐 Panel de Control Izzi (Solo Staff)"):
-    password = st.text_input("Contraseña de Administrador", type="password")
+with st.expander("🔐 Acceso Moonlight"):
+    # La contraseña ahora es Moonlight922
+    password = st.text_input("Introduce el código de acceso", type="password")
     
-    if password == "Izzi2026": 
-        st.success("Acceso concedido. Cargando insights...")
+    if password == "Moonlight922": 
+        st.success("Acceso autorizado. ¡Suerte en la convención, Daniel!")
         
-        # Leer datos frescos
+        # Leer datos frescos para el reporte en vivo
         df_dash = conn.read(ttl=0).dropna(how="all")
 
         if not df_dash.empty:
-            # 1. MÉTRICAS CLAVE
-            col_m1, col_m2 = st.columns(2)
-            with col_m1:
+            # MÉTRICAS TIPO 'KPI'
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
                 st.metric("Total Respuestas", len(df_dash))
-            with col_m2:
+            with col_b:
                 prom_mot = df_dash["Motivacion"].mean()
-                st.metric("Energía Promedio", f"{prom_mot:.1f}/10")
+                st.metric("Energía Promedio", f"{prom_mot:.1f}")
+            with col_c:
+                preparados = (df_dash["Impacto_Ventas"] == "Totalmente preparado").sum()
+                porcentaje = (preparados / len(df_dash)) * 100
+                st.metric("% Ready", f"{porcentaje:.0f}%")
 
             st.divider()
 
-            # 2. GRÁFICAS DE DATOS GENERALES
-            st.write("### 🌍 Demografía y Canales")
-            st.bar_chart(df_dash["Región"].value_counts())
-            st.bar_chart(df_dash["Canal"].value_counts())
-
-            # 3. EVALUACIÓN DEL CONTENIDO (Slider 1-5)
-            st.write("### 📊 Evaluación (Escala 1-5)")
-            # Promediamos las 3 métricas de satisfacción
-            metrics_df = pd.DataFrame({
+            # GRÁFICAS POR PREGUNTA
+            st.write("### 📊 Evaluación de la Agenda")
+            eval_data = {
                 'Métrica': ['Claridad', 'Ponentes', 'Relevancia'],
                 'Promedio': [
                     df_dash["Claridad_Objetivos"].mean(),
                     df_dash["Calidad_Ponentes"].mean(),
                     df_dash["Relevancia"].mean()
                 ]
-            })
-            st.bar_chart(metrics_df.set_index('Métrica'))
+            }
+            st.bar_chart(pd.DataFrame(eval_data).set_index('Métrica'))
 
-            # 4. IMPACTO COMERCIAL (Radio Button)
-            st.write("### 🚀 Sentimiento de Preparación")
-            impacto_counts = df_dash["Impacto_Ventas"].value_counts()
-            st.bar_chart(impacto_counts)
+            st.write("### 🌍 Participación por Región")
+            st.bar_chart(df_dash["Región"].value_counts())
 
-            # 5. FEEDBACK CUALITATIVO
-            st.write("### 💡 Feedback Abierto")
-            tab1, tab2 = st.tabs(["WOW Moments", "Sugerencias"])
-            with tab1:
-                st.write(df_dash["Momento_WOW"].dropna().tail(10))
-            with tab2:
-                st.write(df_dash["Mejoras"].dropna().tail(10))
-                
+            st.write("### 🚀 Canal de Ventas")
+            st.bar_chart(df_dash["Canal"].value_counts())
+
+            # FEEDBACK ABIERTO
+            st.write("### 💬 Momentos WOW (Últimos 10)")
+            st.dataframe(df_dash[["Nombre", "Momento_WOW"]].tail(10), use_container_width=True)
+            
         else:
-            st.info("Esperando las primeras respuestas de la convención...")
+            st.info("Aún no hay registros. ¡El tablero se llenará en cuanto escaneen el QR!")
