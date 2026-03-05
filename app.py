@@ -35,8 +35,8 @@ with st.form(key="encuesta_izzi_completa"):
     st.subheader("👤 Datos del Asistente")
     col1, col2 = st.columns(2)
     with col1:
-        region = st.selectbox("Región", ["Norte", "Centro", "Bajío", "Occidente", "Sur"])
-        canal = st.selectbox("Canal", ["Cambaceo", "Punto de Venta", "Master", "Telemarketing", "Corporativo"])
+        region = st.selectbox("Región", ["Toluca", "Queretaro", "Durango", "Monterrey", "Guadalajara", "Puebla", "Tijuana", "Cancun"])
+        canal = st.selectbox("Canal", ["Externo", "Marketplace"])
     with col2:
         puesto = st.text_input("Puesto / Rol")
         nombre = st.text_input("Nombre (Opcional)")
@@ -153,3 +153,4 @@ with st.expander("🔐 Acceso Moonlight"):
             
         else:
             st.info("Aún no hay registros. ¡El tablero se llenará en cuanto escaneen el QR!")
+
